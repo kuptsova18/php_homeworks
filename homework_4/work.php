@@ -24,14 +24,32 @@ function clearScreen(): void {
    system('clear'); 
 }
 
+function pause(): void {
+    echo 'Нажмите enter для продолжения';
+    fgets(STDIN);
+}
+
+function printShoppingList(array $items): void
+{
+    if (count($items) === 0) {
+        echo 'Ваш список покупок пуст.' . PHP_EOL;
+        return;
+    }
+    
+    echo 'Ваш список покупок: ' . PHP_EOL;
+    foreach ($items as $index => $item) {
+        if (is_array($item)) {
+            $quantity = $item['quantity'] ?? 1;
+            echo ($index + 1) . '. ' . $item['name'] . ' (Количество: ' . $quantity . ')' . PHP_EOL;
+        } else {
+            echo ($index + 1) . '. ' . $item . PHP_EOL;
+        }
+    }
+}
+
 function showMenuAndGetOperation(array $items, array $operations): int {
     do {
-        if (count($items)) {
-            echo 'Ваш список покупок: ' . PHP_EOL;
-            echo implode("\n", $items) . "\n";
-        } else {
-            echo 'Ваш список покупок пуст.' . PHP_EOL;
-        }
+        printShoppingList($items);
 
         echo 'Выберите операцию для выполнения: ' . PHP_EOL;
 
@@ -63,8 +81,7 @@ function addItemAction(array &$items): void
 
     if ($itemName === '') {
         echo 'Название товара не может быть пустым.' . PHP_EOL;
-        echo 'Нажмите enter для продолжения';
-        fgets(STDIN);
+        pause();
         return;
     }
     echo "Введите количество товара: \n> ";
@@ -82,8 +99,7 @@ function addItemAction(array &$items): void
     ];
 
     echo "Товар \"$itemName\" в количестве $quantity добавлен в список." . PHP_EOL;
-    echo 'Нажмите enter для продолжения';
-    fgets(STDIN);
+    pause();
 }
 
 function deleteItemAction(array &$items): void
@@ -95,8 +111,7 @@ function deleteItemAction(array &$items): void
     
     if (!is_numeric($itemNumber) || $itemNumber < 1 || $itemNumber > count($items)) {
         echo 'Некорректный номер товара.' . PHP_EOL;
-        echo 'Нажмите enter для продолжения';
-        fgets(STDIN);
+        pause();
         return;
     }
     
@@ -106,26 +121,7 @@ function deleteItemAction(array &$items): void
     $items = array_values($items);
     
     echo "Товар \"$deletedItem\" удален из списка." . PHP_EOL;
-    echo 'Нажмите enter для продолжения';
-    fgets(STDIN);
-}
-
-function printShoppingList(array $items): void
-{
-    if (count($items) === 0) {
-        echo 'Ваш список покупок пуст.' . PHP_EOL;
-        return;
-    }
-    
-    echo 'Ваш список покупок: ' . PHP_EOL;
-    foreach ($items as $index => $item) {
-        if (is_array($item)) {
-            $quantity = $item['quantity'] ?? 1;
-            echo ($index + 1) . '. ' . $item['name'] . ' (Количество: ' . $quantity . ')' . PHP_EOL;
-        } else {
-            echo ($index + 1) . '. ' . $item . PHP_EOL;
-        }
-    }
+    pause();
 }
 
 function printItemsAction(array $items): void
@@ -139,8 +135,7 @@ function printItemsAction(array $items): void
         echo 'Общее количество товаров: ' . $totalQuantity . '. ' . PHP_EOL;
     }
     
-    echo 'Нажмите enter для продолжения';
-    fgets(STDIN);
+    pause();
 }
 
 function editItemNameAction(array &$items): void {
@@ -151,8 +146,7 @@ function editItemNameAction(array &$items): void {
     
     if (!is_numeric($itemNumber) || $itemNumber < 1 || $itemNumber > count($items)) {
         echo 'Некорректный номер товара.' . PHP_EOL;
-        echo 'Нажмите enter для продолжения';
-        fgets(STDIN);
+        pause();
         return;
     }
     $itemIndex = (int)$itemNumber - 1;
@@ -163,14 +157,12 @@ function editItemNameAction(array &$items): void {
 
     if ($newName === '') {
         echo 'Название товара не может быть пустым.' . PHP_EOL;
-        echo 'Нажмите enter для продолжения';
-        fgets(STDIN);
+        pause();
         return;
     }
      $items[$itemIndex]['name'] = $newName;
     echo "Название товара изменено с \"$oldName\" на \"$newName\"." . PHP_EOL;
-    echo 'Нажмите enter для продолжения';
-    fgets(STDIN);
+    pause();
 }
 
 function updateItemQuantityAction(array &$items): void
@@ -182,8 +174,7 @@ function updateItemQuantityAction(array &$items): void
     
     if (!is_numeric($itemNumber) || $itemNumber < 1 || $itemNumber > count($items)) {
         echo 'Некорректный номер товара.' . PHP_EOL;
-        echo 'Нажмите enter для продолжения';
-        fgets(STDIN);
+        pause();
         return;
     }
     
@@ -198,21 +189,19 @@ function updateItemQuantityAction(array &$items): void
     
     if (!is_numeric($newQuantity) || (int)$newQuantity <= 0) {
         echo 'Количество должно быть положительным числом. Изменение отменено.' . PHP_EOL;
-        echo 'Нажмите enter для продолжения';
-        fgets(STDIN);
+        pause();
         return;
     }
     
     $items[$itemIndex]['quantity'] = (int)$newQuantity;
     echo "Количество товара \"$itemName\" изменено с $currentQuantity на {$items[$itemIndex]['quantity']}." . PHP_EOL;
-    echo 'Нажмите enter для продолжения';
-    fgets(STDIN);
+    pause();
 } 
 
 
 do {
     clearScreen();
-    $operationNumber = showMenuAndGetOperation(array $items, array $operations);
+    $operationNumber = showMenuAndGetOperation($items, $operations);
 
     echo 'Выбрана операция: '  . $operations[$operationNumber] . PHP_EOL;
 
