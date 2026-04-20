@@ -5,42 +5,52 @@ function generateSchedule($year, $month) {
     $dayMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 
     // Первое число - рабочий день
-    $isWorkDay = true;
+    $daysAfterWork = 0; // Сколько дней прошло после рабочего (0 = сегодня рабочий)
     $workDays = array();
-    $daysOff = 0; // Добавляем инициализацию
     
+    $day = 1;
     // Перебираем все дни месяца
-    for ($day = 1; $day <= $dayMonth; $day++) {
+    while ($day <= $dayMonth) {
         $dayOfWeek = date('N', mktime(0, 0, 0, $month, $day, $year));
-        
+       
+        $isWorkDay = ($daysAfterWork == 0); // Проверяем, должен ли сегодня быть рабочий день по графику
+
         // Если сегодня рабочий день
         if($isWorkDay) {
             if($dayOfWeek == 6 || $dayOfWeek == 7){
                 // Переносим на понедельник
                 // Ищем ближайший понедельник
                 $monday = $day;
-                $tempDayOfWeek = $dayOfWeek; // Используем временную переменную
-                while ($tempDayOfWeek != 1){
-                    $monday ++;
-                    $tempDayOfWeek = date('N', mktime(0, 0, 0, $month, $monday, $year));
+                $mondayDayOfWeek = $dayOfWeek;
+
+                while ($mondayDayOfWeek != 1 && $monday <= $dayMonth) {
+                    $monday++;
+                    $mondayDayOfWeek = date('N', mktime(0, 0, 0, $month, $monday, $year));
                 }
                 // Если понедельник в том же месяце
                 if($monday <= $dayMonth) {
                     $workDays[$monday] = true;
+                    $daysAfterWork = 1;
+                    $day = $monday + 1;
                 } else {
                     $workDays[$day] = true;
+                    $daysAfterWork = 1;
+                    $day++;
                 }
             } else {
                 $workDays[$day] = true; 
+                // После рабочего дня - два выходных   
+                $daysAfterWork = 1; 
+                $day++;
             }
-            // После рабочего дня - два выходных (переносим за скобку условия)
-            $isWorkDay = false;
-            $daysOff = 2;
+            //$daysAfterWork = 1;
         } else {
-            $daysOff--;
-            if($daysOff == 0) {
-                $isWorkDay = true;
+            // Выходной день
+            $daysAfterWork++;
+            if ($daysAfterWork > 2) {
+                $daysAfterWork = 0; // После двух выходных - рабочий
             } 
+            $day++;
         }
     }
     return $workDays;
@@ -79,12 +89,11 @@ $dayMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 
 for ($day = 1; $day <= $dayMonth; $day++) {
     if(isset($workDays[$day])) {
-        echo "\033[32m" . $day . "+\033[0m ". "   "; 
+        echo "\033[32m" . $day . "+\033[0m" . "   "; 
     } else {
         echo $day . "    ";
     }
 
-    // Исправлено: используем текущий день, а не переменную $monday
     $dayOfWeek = date('N', mktime(0, 0, 0, $month, $day, $year));
     if ($dayOfWeek == 7) {
         echo "\n";
